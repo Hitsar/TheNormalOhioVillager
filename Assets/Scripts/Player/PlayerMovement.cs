@@ -12,7 +12,7 @@ namespace Player
         [SerializeField] private float _runSpeed = 8;
         [SerializeField] private float _rotateSpeed = 10;
 
-        private InputSystem _inputSystem;
+        private InputSystem _input;
         private CharacterController _characterController;
         private Camera _playerCamera;
 
@@ -21,10 +21,10 @@ namespace Player
         private NativeArray<Vector2> _outputCamera;
         private NativeArray<Vector3> _outputVelocity;
 
-        private void Start()
+        public void Init(InputSystem input)
         {
-            _inputSystem = new InputSystem();
-            _inputSystem.Player.Enable();
+            _input = input;
+            _input.Player.Enable();
 
             _characterController = GetComponent<CharacterController>();
             _playerCamera = GetComponentInChildren<Camera>();
@@ -46,7 +46,7 @@ namespace Player
             {
                 Rotation = _outputCamera,
                 DeltaTime = Time.deltaTime,
-                MouseDelta = _inputSystem.Player.Look.ReadValue<Vector2>(),
+                MouseDelta = _input.Player.Look.ReadValue<Vector2>(),
                 RotateSpeed = _rotateSpeed
             };
             VelocityCalculation velocityCalculation = new VelocityCalculation
@@ -55,8 +55,8 @@ namespace Player
                 WalkSpeed = _walkSpeed,
                 RunSpeed = _runSpeed,
                 CameraAnglesY = _playerCamera.transform.localEulerAngles.y,
-                Direction = _inputSystem.Player.Move.ReadValue<Vector2>(),
-                IsSprint = _inputSystem.Player.Sprint.IsPressed()
+                Direction = _input.Player.Move.ReadValue<Vector2>(),
+                IsSprint = _input.Player.Sprint.IsPressed()
             };
 
             jobs[0] = cameraRotateCalculation.Schedule();
@@ -73,7 +73,7 @@ namespace Player
 
         private void OnDestroy()
         {
-            _inputSystem.Player.Disable();
+            _input.Player.Disable();
             _outputCamera.Dispose();
             _outputVelocity.Dispose();
         }

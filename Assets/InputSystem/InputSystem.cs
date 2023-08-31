@@ -195,6 +195,54 @@ public partial class @InputSystem: IInputActionCollection2, IDisposable
                     ""isPartOfComposite"": false
                 }
             ]
+        },
+        {
+            ""name"": ""Chat"",
+            ""id"": ""5bc7858f-7b5a-40df-a14a-8f3c813106a9"",
+            ""actions"": [
+                {
+                    ""name"": ""OpenChat"",
+                    ""type"": ""Button"",
+                    ""id"": ""4888210a-ce0f-4d27-8b05-8203ef89c268"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""SendAnswer"",
+                    ""type"": ""Button"",
+                    ""id"": ""b4781e38-f1da-47d7-b79e-7936004b4627"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                }
+            ],
+            ""bindings"": [
+                {
+                    ""name"": """",
+                    ""id"": ""f9991a13-b57b-49ba-b70a-9606f7c58499"",
+                    ""path"": ""<Keyboard>/enter"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard & Mouse"",
+                    ""action"": ""SendAnswer"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""a84f3918-99f6-4cf1-ad9a-47c0d3206c80"",
+                    ""path"": ""<Keyboard>/e"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard & Mouse"",
+                    ""action"": ""OpenChat"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                }
+            ]
         }
     ],
     ""controlSchemes"": [
@@ -246,6 +294,10 @@ public partial class @InputSystem: IInputActionCollection2, IDisposable
         // Ui
         m_Ui = asset.FindActionMap("Ui", throwIfNotFound: true);
         m_Ui_Pause = m_Ui.FindAction("Pause", throwIfNotFound: true);
+        // Chat
+        m_Chat = asset.FindActionMap("Chat", throwIfNotFound: true);
+        m_Chat_OpenChat = m_Chat.FindAction("OpenChat", throwIfNotFound: true);
+        m_Chat_SendAnswer = m_Chat.FindAction("SendAnswer", throwIfNotFound: true);
     }
 
     public void Dispose()
@@ -411,6 +463,60 @@ public partial class @InputSystem: IInputActionCollection2, IDisposable
         }
     }
     public UiActions @Ui => new UiActions(this);
+
+    // Chat
+    private readonly InputActionMap m_Chat;
+    private List<IChatActions> m_ChatActionsCallbackInterfaces = new List<IChatActions>();
+    private readonly InputAction m_Chat_OpenChat;
+    private readonly InputAction m_Chat_SendAnswer;
+    public struct ChatActions
+    {
+        private @InputSystem m_Wrapper;
+        public ChatActions(@InputSystem wrapper) { m_Wrapper = wrapper; }
+        public InputAction @OpenChat => m_Wrapper.m_Chat_OpenChat;
+        public InputAction @SendAnswer => m_Wrapper.m_Chat_SendAnswer;
+        public InputActionMap Get() { return m_Wrapper.m_Chat; }
+        public void Enable() { Get().Enable(); }
+        public void Disable() { Get().Disable(); }
+        public bool enabled => Get().enabled;
+        public static implicit operator InputActionMap(ChatActions set) { return set.Get(); }
+        public void AddCallbacks(IChatActions instance)
+        {
+            if (instance == null || m_Wrapper.m_ChatActionsCallbackInterfaces.Contains(instance)) return;
+            m_Wrapper.m_ChatActionsCallbackInterfaces.Add(instance);
+            @OpenChat.started += instance.OnOpenChat;
+            @OpenChat.performed += instance.OnOpenChat;
+            @OpenChat.canceled += instance.OnOpenChat;
+            @SendAnswer.started += instance.OnSendAnswer;
+            @SendAnswer.performed += instance.OnSendAnswer;
+            @SendAnswer.canceled += instance.OnSendAnswer;
+        }
+
+        private void UnregisterCallbacks(IChatActions instance)
+        {
+            @OpenChat.started -= instance.OnOpenChat;
+            @OpenChat.performed -= instance.OnOpenChat;
+            @OpenChat.canceled -= instance.OnOpenChat;
+            @SendAnswer.started -= instance.OnSendAnswer;
+            @SendAnswer.performed -= instance.OnSendAnswer;
+            @SendAnswer.canceled -= instance.OnSendAnswer;
+        }
+
+        public void RemoveCallbacks(IChatActions instance)
+        {
+            if (m_Wrapper.m_ChatActionsCallbackInterfaces.Remove(instance))
+                UnregisterCallbacks(instance);
+        }
+
+        public void SetCallbacks(IChatActions instance)
+        {
+            foreach (var item in m_Wrapper.m_ChatActionsCallbackInterfaces)
+                UnregisterCallbacks(item);
+            m_Wrapper.m_ChatActionsCallbackInterfaces.Clear();
+            AddCallbacks(instance);
+        }
+    }
+    public ChatActions @Chat => new ChatActions(this);
     private int m_GamepadSchemeIndex = -1;
     public InputControlScheme GamepadScheme
     {
@@ -447,5 +553,10 @@ public partial class @InputSystem: IInputActionCollection2, IDisposable
     public interface IUiActions
     {
         void OnPause(InputAction.CallbackContext context);
+    }
+    public interface IChatActions
+    {
+        void OnOpenChat(InputAction.CallbackContext context);
+        void OnSendAnswer(InputAction.CallbackContext context);
     }
 }

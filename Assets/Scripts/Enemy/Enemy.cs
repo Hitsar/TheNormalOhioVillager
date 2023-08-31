@@ -18,13 +18,14 @@ namespace Enemy
         private Collider _collider;
         private byte _health = 5;
 
-        public event Action OnLose;
+        public event Action Lost;
 
         private void Start()
         {
             _enemyAnimator = GetComponentInChildren<Animator>();
             _collider = GetComponent<Collider>();
             _windowAnimator = GetComponent<Animator>();
+            Lost += Stop;
         }
 
         private void FixedUpdate()
@@ -32,13 +33,13 @@ namespace Enemy
             if (_isHacking)
             {
                 _hackingTimer += Time.fixedDeltaTime;
-                if (_hackingTimer >= 13) OnLose?.Invoke();
+                if (_hackingTimer >= 13) Lost?.Invoke();
             }
 
             if (_isPenetration)
             {
                 _penetrationTimer += Time.fixedDeltaTime;
-                if (_penetrationTimer >= 5) OnLose?.Invoke();
+                if (_penetrationTimer >= 5) Lost?.Invoke();
             }
         }
 
@@ -48,16 +49,15 @@ namespace Enemy
             _windowAnimator.SetTrigger("Open");
             _isHacking = false;
             _isPenetration = true;
+            print("Penetr..");
         }
 
-        private void OnTriggerExit(Collider other) => OnLose?.Invoke();
+        private void OnTriggerExit(Collider other) => Lost?.Invoke();
 
         private void Fall()
         {
-            _collider.enabled = false;
+            Stop();
             _enemyAnimator.SetTrigger("Fall");
-            _isHacking = false;
-            _isPenetration = false;
         }
 
         public void Hacking()
@@ -65,12 +65,21 @@ namespace Enemy
             _collider.enabled = true;
             _enemyAnimator.SetTrigger("Hacking");
             _isHacking = true;
+            print("Start");
         }
 
         public void Hit()
         {
             _health--;
             if (_health >= 0) Fall();
+        }
+
+        private void Stop()
+        {
+            _collider.enabled = false;
+            _isHacking = false;
+            _isPenetration = false;
+            print("End");
         }
     }
 }
