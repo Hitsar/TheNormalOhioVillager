@@ -24,14 +24,12 @@ namespace Player
         public void Init(InputSystem input)
         {
             _input = input;
-            _input.Player.Enable();
-
             _characterController = GetComponent<CharacterController>();
             _playerCamera = GetComponentInChildren<Camera>();
 
-            _outputCamera = new NativeArray<Vector2>( 2, Allocator.Persistent); 
+            _outputCamera = new NativeArray<Vector2>(2, Allocator.Persistent); 
             _outputVelocity = new NativeArray<Vector3>(2, Allocator.Persistent);
-            
+
             Cursor.lockState = CursorLockMode.Locked;
         }
 
@@ -41,7 +39,7 @@ namespace Player
 
             _outputCamera[0] = _rotation;
             _outputVelocity[0] = _velocity;
-
+            
             CameraRotateCalculation cameraRotateCalculation = new CameraRotateCalculation
             {
                 Rotation = _outputCamera,
@@ -65,7 +63,6 @@ namespace Player
 
             _rotation = _outputCamera[1];
             _velocity = _outputVelocity[1];
-            
 
             _playerCamera.transform.localEulerAngles = _rotation;
             _characterController.Move(_velocity * Time.deltaTime);
@@ -77,45 +74,45 @@ namespace Player
             _outputCamera.Dispose();
             _outputVelocity.Dispose();
         }
-    }
-}
+        
+        [BurstCompile]
+        private struct CameraRotateCalculation : IJob
+        {
+            [ReadOnly] public float DeltaTime;
+            [ReadOnly] public Vector2 MouseDelta;
+            [ReadOnly] public float RotateSpeed;
+            public NativeArray<Vector2> Rotation;
 
-[BurstCompile]
-public struct CameraRotateCalculation : IJob
-{
-    [ReadOnly] public float DeltaTime;
-    [ReadOnly] public Vector2 MouseDelta;
-    [ReadOnly] public float RotateSpeed;
-    public NativeArray<Vector2> Rotation;
+            public void Execute()
+            {
+                Vector2 rotation = Rotation[0];
+                if (MouseDelta.sqrMagnitude < 0.1f) return;
 
-    public void Execute()
-    {
-        Vector2 rotation = Rotation[0];
-        if (MouseDelta.sqrMagnitude < 0.1f) return;
-
-        MouseDelta *= RotateSpeed * DeltaTime;
-        rotation.y += MouseDelta.x;
-        rotation.x = Mathf.Clamp(rotation.x - MouseDelta.y, -90, 90);
-        Rotation[1] = rotation;
-    }
-}
-
-[BurstCompile]
-public struct VelocityCalculation : IJob
-{
-    [ReadOnly] public float WalkSpeed;
-    [ReadOnly] public float RunSpeed;
-    [ReadOnly] public float CameraAnglesY;
-    [ReadOnly] public bool IsSprint;
-    [ReadOnly] public Vector2 Direction;
-    public NativeArray<Vector3> Velocity;
+                MouseDelta *= RotateSpeed * DeltaTime;
+                rotation.y += MouseDelta.x;
+                rotation.x = Mathf.Clamp(rotation.x - MouseDelta.y, -90, 90);
+                Rotation[1] = rotation;
+            }
+        }
+        
+        [BurstCompile]
+        private struct VelocityCalculation : IJob
+        {
+            [ReadOnly] public float WalkSpeed;
+            [ReadOnly] public float RunSpeed;
+            [ReadOnly] public float CameraAnglesY;
+            [ReadOnly] public bool IsSprint;
+            [ReadOnly] public Vector2 Direction;
+            public NativeArray<Vector3> Velocity;
     
-    public void Execute()
-    {
-        Vector3 velocity = Velocity[0];
-        Direction *= IsSprint ? RunSpeed : WalkSpeed;
-        Vector3 move = Quaternion.Euler(0, CameraAnglesY, 0) * new Vector3(Direction.x, 0, Direction.y);
-        velocity = new Vector3(move.x, velocity.y, move.z);
-        Velocity[1] = velocity;
+            public void Execute()
+            {
+                Vector3 velocity = Velocity[0];
+                Direction *= IsSprint ? RunSpeed : WalkSpeed;
+                Vector3 move = Quaternion.Euler(0, CameraAnglesY, 0) * new Vector3(Direction.x, 0, Direction.y);
+                velocity = new Vector3(move.x, velocity.y, move.z);
+                Velocity[1] = velocity;
+            }
+        }
     }
 }

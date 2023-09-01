@@ -34,6 +34,7 @@ namespace Enemy
             {
                 _hackingTimer += Time.fixedDeltaTime;
                 if (_hackingTimer >= 13) Lost?.Invoke();
+                return;
             }
 
             if (_isPenetration)
@@ -45,11 +46,9 @@ namespace Enemy
 
         private void OnTriggerEnter(Collider other)
         {
-            _enemyAnimator.SetTrigger("Penetration");
             _windowAnimator.SetTrigger("Open");
             _isHacking = false;
             _isPenetration = true;
-            print("Penetr..");
         }
 
         private void OnTriggerExit(Collider other) => Lost?.Invoke();
@@ -57,15 +56,15 @@ namespace Enemy
         private void Fall()
         {
             Stop();
-            _enemyAnimator.SetTrigger("Fall");
+            _enemyAnimator.SetTrigger("Die");
+            _windowAnimator.SetTrigger("Close");
         }
 
         public void Hacking()
         {
             _collider.enabled = true;
-            _enemyAnimator.SetTrigger("Hacking");
+            _enemyAnimator.SetTrigger("Stand");
             _isHacking = true;
-            print("Start");
         }
 
         public void Hit()
@@ -79,7 +78,6 @@ namespace Enemy
             _collider.enabled = false;
             _isHacking = false;
             _isPenetration = false;
-            print("End");
         }
     }
 }
