@@ -1,6 +1,8 @@
 using Player;
 using UnityEngine;
 using Ui.Chat;
+using Ui.Menus.LoseMenu;
+using Ui.Menus.Pause;
 
 public class InputPeddler : MonoBehaviour
 {
@@ -8,7 +10,11 @@ public class InputPeddler : MonoBehaviour
     {
         InputSystem input = new InputSystem();
         input.Enable();
-        FindObjectOfType<PlayerMovement>().Init(input);
+        PlayerMovement player = FindObjectOfType<PlayerMovement>();
+        player.Init(input);
+        player.GetComponentInChildren<PlayerAttack>().Init(input);
         FindObjectOfType<Chat>().Init(input);
+        FindObjectOfType<PauseMenu>().Init(input);
+        FindObjectOfType<LoseMenu>().Init(input);
     }
 }

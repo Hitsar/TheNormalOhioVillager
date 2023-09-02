@@ -22,9 +22,9 @@ namespace Enemy
 
         private void Start()
         {
-            _enemyAnimator = GetComponentInChildren<Animator>();
+            _enemyAnimator = GetComponent<Animator>();
             _collider = GetComponent<Collider>();
-            _windowAnimator = GetComponent<Animator>();
+            _windowAnimator = GetComponentInChildren<Animator>();
             Lost += Stop;
         }
 
@@ -51,7 +51,7 @@ namespace Enemy
             _isPenetration = true;
         }
 
-        private void OnTriggerExit(Collider other) => Lost?.Invoke();
+        private void OnTriggerExit(Collider other) => Lost?.Invoke(); 
 
         private void Fall()
         {
@@ -65,12 +65,13 @@ namespace Enemy
             _collider.enabled = true;
             _enemyAnimator.SetTrigger("Stand");
             _isHacking = true;
+            _health = 5;
         }
 
-        public void Hit()
+        public void TakeDamage()
         {
             _health--;
-            if (_health >= 0) Fall();
+            if (_health <= 0) Fall();
         }
 
         private void Stop()

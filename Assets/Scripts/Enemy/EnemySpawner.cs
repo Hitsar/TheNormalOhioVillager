@@ -4,10 +4,12 @@ namespace Enemy
 {
     public class EnemySpawner : MonoBehaviour
     {
-        [SerializeField] private Enemy[] _enemies;
+        private Enemy[] _enemies;
         private int _maxSecondForSpawn = 15;
-        private int _secondForSpawn = 15;
+        private int _secondForSpawn = 10;
         private float _time;
+
+        private void Start() => _enemies = FindObjectsOfType<Enemy>();
 
         private void FixedUpdate()
         {

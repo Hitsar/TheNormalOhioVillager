@@ -1,4 +1,5 @@
 using System;
+using DG.Tweening;
 using TMPro;
 using UnityEngine;
 
@@ -40,7 +41,7 @@ namespace Ui.Chat
             else
             {
                 _timeToPostText += Time.fixedDeltaTime;
-                if (_timeToPostText < 13) return;
+                if (_timeToPostText < 15) return;
                 
                 TMP_Text text = GetNewText();
                 text.text = _textsToPost[_currentText];
@@ -61,20 +62,23 @@ namespace Ui.Chat
             _timeToAnswer = 0;
         }
 
-        private TMP_Text GetNewText() => Instantiate(_textBlockPrefab, _content);
-
         private void OpenOrClose()
         {
+            _isOpened = !_isOpened;
             if (_isOpened)
-            {
-                Cursor.lockState = CursorLockMode.Locked;
-                _input.Player.Enable();
-            }
-            else
             {
                 Cursor.lockState = CursorLockMode.None;
                 _input.Player.Disable();
+                transform.DOLocalMoveY(0, 0.3f).SetEase(Ease.OutQuad);
+            }
+            else
+            {
+                Cursor.lockState = CursorLockMode.Locked;
+                _input.Player.Enable();
+                transform.DOLocalMoveY(-1000, 0.2f).SetEase(Ease.InQuad);
             }
         }
+
+        private TMP_Text GetNewText() => Instantiate(_textBlockPrefab, _content);
     }
 }
