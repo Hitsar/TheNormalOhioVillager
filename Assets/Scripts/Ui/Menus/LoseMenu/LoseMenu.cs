@@ -6,6 +6,7 @@ namespace Ui.Menus.LoseMenu
     public class LoseMenu : MonoBehaviour
     {
         [SerializeField] private Transform _menu;
+        [SerializeField] private AudioSource _loseAudio, _music;
         private InputSystem _input;
         
         public void Init(InputSystem input)
@@ -22,6 +23,9 @@ namespace Ui.Menus.LoseMenu
             Cursor.lockState = CursorLockMode.None;
             _menu.DOLocalMoveY(0, 1).SetEase(Ease.OutElastic);
             _input.Disable();
+            
+            _music.Stop();
+            _loseAudio.Play();
         }
     }
 }
