@@ -11,14 +11,18 @@ namespace Ui.Chat
         [SerializeField] private TMP_Text _textBlockPrefab;
         [SerializeField] private TMP_InputField _answerField;
         [SerializeField] private Transform _content;
-        private InputSystem _input;
+
+        [SerializeField] private AudioSource _notificationAudio;
+        [SerializeField] private AudioSource _messageAudio;
         
+        private InputSystem _input;
         private byte _currentText;
         private float _timeToPostText;
         private float _timeToAnswer;
+        
         private bool _isWaitingAnswer;
         private bool _isOpened;
-
+        
         public event Action Lost;
 
         public void Init(InputSystem input)
@@ -31,7 +35,7 @@ namespace Ui.Chat
 
         private void FixedUpdate()
         {
-            if (_currentText == 50) return;
+            if (_currentText == _textsToPost.Length - 1) return;
             
             if (_isWaitingAnswer)
             {
@@ -50,16 +54,21 @@ namespace Ui.Chat
                 _currentText++;
                 _isWaitingAnswer = true;
                 _timeToPostText = 0;
+                if (_isOpened) _messageAudio.Play();
+                else _notificationAudio.Play();
             }
         }
 
         private void SendAnswer()
         {
+            if (!_isOpened) return;
+            if (_answerField.text.Length == 0) return;
+            
             GetNewText().text = _answerField.text;
             _answerField.text = default;
-            
             _isWaitingAnswer = false;
             _timeToAnswer = 0;
+            _messageAudio.Play();
         }
 
         private void OpenOrClose()

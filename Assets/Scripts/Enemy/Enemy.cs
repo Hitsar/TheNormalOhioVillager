@@ -15,6 +15,7 @@ namespace Enemy
         private float _penetrationTimer;
         private float _fallTimer;
 
+        private AudioSource _hitAudio;
         private Collider _collider;
         private byte _health = 5;
 
@@ -25,6 +26,7 @@ namespace Enemy
             _enemyAnimator = GetComponent<Animator>();
             _collider = GetComponent<Collider>();
             _windowAnimator = GetComponentInChildren<Animator>();
+            _hitAudio = GetComponent<AudioSource>();
             Lost += Stop;
         }
 
@@ -80,5 +82,7 @@ namespace Enemy
             _isHacking = false;
             _isPenetration = false;
         }
+
+        private void PlayAudio() => _hitAudio.Play();
     }
 }
